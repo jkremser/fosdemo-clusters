@@ -8,6 +8,9 @@ spec:
       k8gb: enabled
   repoURL: https://www.k8gb.io
   chartName: k8gb
+  options:
+    install:
+      createNamespace: true
   valuesTemplate: |
     k8gb:
       dnsZone: "demo.k8s.kremser.dev" # dnsZone controlled by gslb
