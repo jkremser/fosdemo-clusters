@@ -4,6 +4,7 @@ metadata:
   labels:
     ccm: external
     csi: external
+    k8gb: enabled
   name: cluster-us
   namespace: default
 spec:

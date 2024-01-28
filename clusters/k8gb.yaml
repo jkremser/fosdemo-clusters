@@ -1,0 +1,29 @@
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: k8gb
+spec:
+  clusterSelector:
+    matchLabels:
+      k8gb: enabled
+  repoURL: https://www.k8gb.io
+  chartName: k8gb
+  valuesTemplate: |
+    k8gb:
+      dnsZone: "demo.k8s.kremser.dev" # dnsZone controlled by gslb
+      edgeDNSZone: "k8s.kremser.dev" # main zone which would contain gslb zone to delegate
+      edgeDNSServers: 
+      - "169.254.169.253" # use this DNS server as a main resolver to enable cross k8gb DNS based communication (DNS server for EC2)
+      clusterGeoTag: "{{ .AWSCluster.spec.region }}" # used for places where we need to distinguish between differnet Gslb instances
+      extGslbClustersGeoTags: "eu-west-2,us-east-2" # comma-separated list of external gslb geo tags to pair with
+
+    route53:
+      enabled: true
+      hostedZoneID: Z00685903NFM1HS4Z3B6N
+      secret: external-dns
+
+    coredns:
+      serviceType: LoadBalancer
+      service:
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-type: nlb

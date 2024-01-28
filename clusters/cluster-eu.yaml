@@ -4,6 +4,8 @@ metadata:
   labels:
     ccm: external
     csi: external
+    k8gb: enabled
+    # k8gbClusterGeoTag: eu-west-2
   name: cluster-eu
   namespace: default
 spec:
@@ -130,7 +132,7 @@ spec:
 apiVersion: addons.cluster.x-k8s.io/v1beta1
 kind: ClusterResourceSet
 metadata:
-  name: crs-ccm
+  name: crs-ccm-eu
   namespace: default
 spec:
   clusterSelector:
@@ -138,13 +140,13 @@ spec:
       ccm: external
   resources:
     - kind: ConfigMap
-      name: cloud-controller-manager-addon
+      name: cloud-controller-manager-addon-eu
   strategy: ApplyOnce
 ---
 apiVersion: addons.cluster.x-k8s.io/v1beta1
 kind: ClusterResourceSet
 metadata:
-  name: crs-csi
+  name: crs-csi-eu
   namespace: default
 spec:
   clusterSelector:
@@ -152,7 +154,7 @@ spec:
       csi: external
   resources:
     - kind: ConfigMap
-      name: aws-ebs-csi-driver-addon
+      name: aws-ebs-csi-driver-addon-eu
   strategy: ApplyOnce
 ---
 apiVersion: v1
@@ -334,7 +336,7 @@ metadata:
     note: generated
   labels:
     type: generated
-  name: cloud-controller-manager-addon
+  name: cloud-controller-manager-addon-eu
   namespace: default
 ---
 apiVersion: v1
@@ -980,5 +982,5 @@ metadata:
     note: generated
   labels:
     type: generated
-  name: aws-ebs-csi-driver-addon
+  name: aws-ebs-csi-driver-addon-eu
   namespace: default
