@@ -6,6 +6,7 @@ metadata:
     csi: external
     k8gb: enabled
     k8gbClusterGeoTag: us-east-2
+    test-gslb: true
   name: cluster-us
   namespace: default
 spec:

@@ -1,0 +1,76 @@
+apiVersion: addons.cluster.x-k8s.io/v1beta1
+kind: ClusterResourceSet
+metadata:
+  name: test-gslb
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      test-gslb: true
+  resources:
+    - kind: ConfigMap
+      name: test-gslb-addon
+  strategy: ApplyOnce
+---
+apiVersion: v1
+data:
+  test-gslb.yaml: |
+    ---
+    apiVersion: k8gb.absa.oss/v1beta1
+    kind: Gslb
+    metadata:
+      name: test-gslb
+      namespace: test-gslb
+    spec:
+      ingress:
+        ingressClassName: nginx
+        rules:
+        - host: roundrobin.demo.k8s.kremser.dev
+          http:
+            paths:
+            - backend:
+                service:
+                  name: frontend-podinfo
+                  port:
+                    name: http
+              path: /
+              pathType: Prefix
+      strategy:
+        dnsTtlSeconds: 30
+        splitBrainThresholdSeconds: 300
+        type: roundRobin
+    ---
+    apiVersion: k8gb.absa.oss/v1beta1
+    kind: Gslb
+    metadata:
+      name: test-gslb-failover
+      namespace: test-gslb
+    spec:
+      ingress:
+        ingressClassName: nginx
+        rules:
+        - host: failover.demo.k8s.kremser.dev
+          http:
+            paths:
+            - backend:
+                service:
+                  name: frontend-podinfo
+                  port:
+                    name: http
+              path: /
+              pathType: Prefix
+      strategy:
+        dnsTtlSeconds: 30
+        primaryGeoTag: us-east-2
+        splitBrainThresholdSeconds: 300
+        type: failover
+    
+kind: ConfigMap
+metadata:
+  annotations:
+    note: generated
+  labels:
+    type: generated
+  name: test-gslb-addon
+  namespace: default
+---
