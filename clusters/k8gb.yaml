@@ -9,6 +9,7 @@ spec:
       k8gb: enabled
   repoURL: https://www.k8gb.io
   chartName: k8gb
+  releaseName: k8gb
   options:
     install:
       createNamespace: true
@@ -31,3 +32,5 @@ spec:
       service:
         annotations:
           service.beta.kubernetes.io/aws-load-balancer-type: nlb
+---
+# todo: podinfo

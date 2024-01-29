@@ -853,3 +853,21 @@ metadata:
     type: generated
   name: aws-ebs-csi-driver-addon
   namespace: default
+---
+# helm --kubeconfig=${CLUSTER}.kc install cilium cilium/cilium --version 1.14.5 --namespace kube-system --set ipam.mode=kubernetes
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: cilium
+  namespace: kube-system
+spec:
+  clusterSelector:
+    matchLabels:
+      ccm: external
+  repoURL: https://helm.cilium.io/
+  chartName: cilium
+  releaseName: cilium
+  version: 1.14.5
+  valuesTemplate: |
+    ipam:
+      mode: kubernetes
