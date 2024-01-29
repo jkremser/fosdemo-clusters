@@ -6,7 +6,7 @@ metadata:
     csi: external
     k8gb: enabled
     k8gbClusterGeoTag: eu-west-2
-    test-gslb: true
+    test-gslb: create
   name: cluster-eu
   namespace: default
 spec:

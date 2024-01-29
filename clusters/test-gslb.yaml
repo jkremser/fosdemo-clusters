@@ -6,7 +6,7 @@ metadata:
 spec:
   clusterSelector:
     matchLabels:
-      test-gslb: true
+      test-gslb: create
   resources:
     - kind: ConfigMap
       name: test-gslb-addon
