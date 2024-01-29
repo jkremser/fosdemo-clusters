@@ -10,6 +10,7 @@ spec:
   repoURL: https://www.k8gb.io
   chartName: k8gb
   releaseName: k8gb
+  namespace: k8gb
   options:
     install:
       createNamespace: true

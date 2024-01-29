@@ -859,7 +859,7 @@ apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy
 metadata:
   name: cilium
-  namespace: kube-system
+  namespace: default
 spec:
   clusterSelector:
     matchLabels:
@@ -867,6 +867,7 @@ spec:
   repoURL: https://helm.cilium.io/
   chartName: cilium
   releaseName: cilium
+  namespace: kube-system
   version: 1.14.5
   valuesTemplate: |
     ipam:
