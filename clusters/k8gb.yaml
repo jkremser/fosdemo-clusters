@@ -18,7 +18,7 @@ spec:
       edgeDNSZone: "k8s.kremser.dev" # main zone which would contain gslb zone to delegate
       edgeDNSServers: 
       - "169.254.169.253" # use this DNS server as a main resolver to enable cross k8gb DNS based communication (DNS server for EC2)
-      clusterGeoTag: "{{ .AWSCluster.spec.region }}"
+      clusterGeoTag: "{{ .Cluster.metadata.labels.k8gbClusterGeoTag }}"
       extGslbClustersGeoTags: "eu-west-2,us-east-2" # comma-separated list of external gslb geo tags to pair with
 
     route53:

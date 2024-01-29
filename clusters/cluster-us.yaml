@@ -5,6 +5,7 @@ metadata:
     ccm: external
     csi: external
     k8gb: enabled
+    k8gbClusterGeoTag: us-east-2
   name: cluster-us
   namespace: default
 spec:

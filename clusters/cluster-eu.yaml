@@ -5,6 +5,7 @@ metadata:
     ccm: external
     csi: external
     k8gb: enabled
+    k8gbClusterGeoTag: eu-west-2
   name: cluster-eu
   namespace: default
 spec:
@@ -112,7 +113,7 @@ spec:
       instanceType: t3.large
       sshKeyName: default
       spotMarketOptions:
-        maxPrice: "0.04"
+        maxPrice: "0.042"
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfigTemplate
