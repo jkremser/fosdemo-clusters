@@ -5,8 +5,9 @@ metadata:
     ccm: external
     csi: external
     k8gb: enabled
-    k8gbClusterGeoTag: eu-west-2
     test-gslb: create
+    nginx: create
+    k8gbClusterGeoTag: eu-west-2
   name: cluster-eu
   namespace: default
 spec:
