@@ -82,7 +82,8 @@ data:
           serviceAccountName: "patch-externaldns"
           containers:
             - name: patch-externaldns
-              image: "bitnami/kubectl:1.28"
+              # image: "bitnami/kubectl:1.28"
+              image: "quay.io/giantswarm/kubectl:1.28"
               resources:
               requests:
                 memory: "64Mi"
@@ -92,7 +93,7 @@ data:
                 cpu: "100m"
               command:
                 - "/bin/bash"
-                - "-xc"
+                - "-c"
                 - |
                   for i in $(seq 10); do
                     kubectl patch deploy -n k8gb external-dns --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}' 2>&1 && exit 0
