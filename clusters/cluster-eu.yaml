@@ -29,6 +29,8 @@ kind: AWSCluster
 metadata:
   name: cluster-eu
   namespace: default
+  annotations:
+    aws.cluster.x-k8s.io/external-resource-gc: "true"
 spec:
   region: eu-west-2
   sshKeyName: default
