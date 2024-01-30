@@ -30,10 +30,15 @@ k get secrets argocd-initial-admin-secret -o jsonpath={.data.password} | base64 
 k apply -f argo-app.yaml
 ```
 
-
 # show dns records
 ```
 aws route53 list-resource-record-sets --hosted-zone-id=Z00685903NFM1HS4Z3B6N | jq '.ResourceRecordSets'
+```
+
+
+# check the app
+```
+curl http://roundrobin.demo.k8s.kremser.dev
 ```
 
 # force reconciliation
