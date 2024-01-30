@@ -123,7 +123,7 @@ data:
       name: "patch-externaldns"
       namespace: "k8gb"
     rules:
-      - apiGroups: ["apps/v1"]
+      - apiGroups: ["apps"]
         resources: ["deployments"]
         verbs: ["get", "patch"]
     ---
