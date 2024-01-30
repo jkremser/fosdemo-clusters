@@ -38,7 +38,7 @@ data:
             paths:
             - backend:
                 service:
-                  name: frontend-podinfo
+                  name: podinfo
                   port:
                     name: http
               path: /
@@ -62,7 +62,7 @@ data:
             paths:
             - backend:
                 service:
-                  name: frontend-podinfo
+                  name: podinfo
                   port:
                     name: http
               path: /

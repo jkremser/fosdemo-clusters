@@ -257,6 +257,7 @@ data:
     apiVersion: v1
     data:
       allow-snippet-annotations: "true"
+      hsts: "false"
     kind: ConfigMap
     metadata:
       labels:
