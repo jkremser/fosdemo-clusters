@@ -64,7 +64,73 @@ data:
         primaryGeoTag: us-east-2
         splitBrainThresholdSeconds: 300
         type: failover
-    
+      ---
+      # ugly, we need to allow the change of dnsPolicy of ExternalDNS deployment in k8gb's helm chart
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: "patch-externaldns"
+        namespace: "k8gb"
+      spec:
+        ttlSecondsAfterFinished: 86400 # 24h
+        template:
+          metadata:
+            name: "patch-externaldns"
+            namespace: "k8gb"
+          spec:
+            restartPolicy: Never
+            serviceAccountName: "patch-externaldns"
+            containers:
+              - name: patch-externaldns
+                image: "bitnami/kubectl:1.28"
+                resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+                command:
+                  - "/bin/bash"
+                  - "-xc"
+                  - |
+                    for i in $(seq 10); do
+                      kubectl patch deploy -n k8gb external-dns --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}' 2>&1 && exit 0
+                      _sec=$(echo "1.5^$i" | bc)
+                      echo "Waiting ${_sec} seconds.."
+                      sleep ${_sec}
+                    done
+                    exit 1
+      ---
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: "patch-externaldns"
+        namespace: "k8gb"
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: "patch-externaldns"
+        namespace: "k8gb"
+      rules:
+        - apiGroups: ["apps/v1"]
+          resources: ["deployments"]
+          verbs: ["get", "patch"]
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: "patch-externaldns"
+        namespace: "k8gb"
+      subjects:
+        - kind: ServiceAccount
+          name: "patch-externaldns"
+          namespace: "k8gb"
+      roleRef:
+        kind: Role
+        name: "patch-externaldns"
+        apiGroup: rbac.authorization.k8s.io
 kind: ConfigMap
 metadata:
   annotations:
@@ -73,4 +139,3 @@ metadata:
     type: generated
   name: test-gslb-addon
   namespace: default
----
