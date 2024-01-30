@@ -144,6 +144,6 @@ data:
         name: "patch-externaldns"
         namespace: "k8gb"
     roleRef:
-      kind: Role
+      kind: ClusterRole
       name: "patch-externaldns"
       apiGroup: rbac.authorization.k8s.io

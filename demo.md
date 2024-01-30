@@ -40,3 +40,35 @@ aws route53 list-resource-record-sets --hosted-zone-id=Z00685903NFM1HS4Z3B6N | j
 ```
 k patch applications clusters --type=merge -p '{"operation":{"sync":{"syncStrategy":{"apply":{"force":true}}}}}'
 ```
+k8gb-us-east-2-demo.k8s.kremser.dev
+
+# domain cleanup
+```
+_DO="demo.k8s.kremser.dev."
+_HZ="Z00685903NFM1HS4Z3B6N"
+for r in us-east-2 eu-west-2; do
+  for rec in k8gb-${r}-ns-${_DO} \
+          k8gb-${r}-${_DO} \
+          k8gb-${r}-gslb-ns-${r}-${_DO} \
+          k8gb-${r}-a-gslb-ns-${r}-${_DO} \
+          gslb-ns-${r}-${_DO} \
+          ${_DO} ;do
+    RS=$(aws route53 --hosted-zone-id=${_HZ} list-resource-record-sets | jq '.ResourceRecordSets[] | select(.Name=="'${rec}'")' 2> /dev/null)
+    [ -z "${RS}" ] && echo "${rec} is already gone, skipping.." && continue
+    cat <<DNS > dns.json
+{
+  "Comment": "resetting dns records",
+  "Changes": [
+    {
+      "Action": "DELETE",
+      "ResourceRecordSet": ${RS}
+    }
+  ]
+}
+DNS
+    aws route53 --hosted-zone-id=Z00685903NFM1HS4Z3B6N change-resource-record-sets --change-batch file://dns.json
+    echo "deleted ${rec} .."
+    rm -rf dns.json
+  done
+done
+```
