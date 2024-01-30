@@ -101,10 +101,16 @@ data:
                 cpu: "100m"
               command:
                 - "/bin/bash"
-                - "-c"
+                - "-ce"
                 - |
                   for i in $(seq 10); do
-                    kubectl patch deploy -n k8gb external-dns --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}' 2>&1 && exit 0
+                    # remove once https://github.com/k8gb-io/k8gb/pull/1428 got merged and released
+                    kubectl patch deploy -n k8gb external-dns --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}'
+                    sleep 20
+                    # force AWS load loadbalancer reconciliation by aws cloud provider
+                    kubectl annotate svc -n k8gb k8gb-coredns reconcileMe=foo
+                    kubectl annotate svc -n ingress-nginx ingress-nginx-controller reconcileMe=foo
+                    exit 0 # ok
                     _sec=$(echo "1.5^$i" | bc)
                     echo "Waiting ${_sec} seconds.."
                     sleep ${_sec}
@@ -118,20 +124,21 @@ data:
       namespace: "k8gb"
     ---
     apiVersion: rbac.authorization.k8s.io/v1
-    kind: Role
+    kind: ClusterRole
     metadata:
       name: "patch-externaldns"
-      namespace: "k8gb"
     rules:
       - apiGroups: ["apps"]
         resources: ["deployments"]
         verbs: ["get", "patch"]
+      - apiGroups: [""]
+        resources: ["services"]
+        verbs: ["get", "patch"]
     ---
     apiVersion: rbac.authorization.k8s.io/v1
-    kind: RoleBinding
+    kind: ClusterRoleBinding
     metadata:
       name: "patch-externaldns"
-      namespace: "k8gb"
     subjects:
       - kind: ServiceAccount
         name: "patch-externaldns"
