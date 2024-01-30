@@ -76,7 +76,7 @@ spec:
       instanceType: t3.large
       sshKeyName: default
       spotMarketOptions:
-        maxPrice: "0.04"
+        maxPrice: "0.042"
 ---
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: MachineDeployment
