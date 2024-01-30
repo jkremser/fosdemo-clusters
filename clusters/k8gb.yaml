@@ -34,6 +34,7 @@ spec:
         annotations:
           service.beta.kubernetes.io/aws-load-balancer-type: nlb
           service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+          service.beta.kubernetes.io/aws-load-balancer-backend-protocol: udp
 ---
 # helm repo add podinfo https://stefanprodan.github.io/podinfo
 # helm upgrade --install podinfo --namespace test-gslb --set ui.message="<geotag>" --set image.repository="ghcr.io/stefanprodan/podinfo" podinfo/podinfo --version 6.5.4
