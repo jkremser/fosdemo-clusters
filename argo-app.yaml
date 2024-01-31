@@ -10,7 +10,7 @@ spec:
   source:
     path: clusters
     repoURL: 'https://github.com/jkremser/fosdemo-clusters.git'
-    targetRevision: HEAD
+    targetRevision: clusters
   project: default
   syncPolicy:
     automated: {}
