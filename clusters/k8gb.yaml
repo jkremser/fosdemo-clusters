@@ -1,0 +1,65 @@
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: k8gb
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      k8gb: enabled
+  repoURL: https://www.k8gb.io
+  chartName: k8gb
+  releaseName: k8gb
+  namespace: k8gb
+  options:
+    install:
+      createNamespace: true
+  valuesTemplate: |
+    k8gb:
+      dnsZone: "demo.k8s.kremser.dev" # dnsZone controlled by gslb
+      edgeDNSZone: "k8s.kremser.dev" # main zone which would contain gslb zone to delegate
+      edgeDNSServers: 
+      - "169.254.169.253" # use this DNS server as a main resolver to enable cross k8gb DNS based communication (DNS server for EC2)
+      clusterGeoTag: "{{ .Cluster.metadata.labels.k8gbClusterGeoTag }}"
+      # comma-separated list of external gslb geo tags to pair with
+      extGslbClustersGeoTags: "eu-west-2"
+
+    route53:
+      enabled: true
+      hostedZoneID: Z00685903NFM1HS4Z3B6N
+      # secret: external-dns
+
+    coredns:
+      serviceType: LoadBalancer
+      service:
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-type: nlb
+          service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+          service.beta.kubernetes.io/aws-load-balancer-backend-protocol: udp
+          service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "false"
+---
+# helm repo add podinfo https://stefanprodan.github.io/podinfo
+# helm upgrade --install podinfo --namespace test-gslb --set ui.message="<geotag>" --set image.repository="ghcr.io/stefanprodan/podinfo" podinfo/podinfo --version 6.5.4
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: podinfo
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      k8gb: enabled
+  repoURL: https://stefanprodan.github.io/podinfo
+  chartName: podinfo
+  releaseName: podinfo
+  namespace: test-gslb
+  version: 6.5.4
+  options:
+    install:
+      createNamespace: true
+  valuesTemplate: |
+    ui:
+      message: "{{ .Cluster.metadata.labels.k8gbClusterGeoTag }}"
+    probes:
+      readiness: 
+        timeoutSeconds: 10

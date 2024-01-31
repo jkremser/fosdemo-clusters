@@ -1,132 +1,3 @@
-apiVersion: cluster.x-k8s.io/v1beta1
-kind: Cluster
-metadata:
-  labels:
-    ccm: external
-    csi: external
-  name: cluster-us
-  namespace: default
-spec:
-  clusterNetwork:
-    pods:
-      cidrBlocks:
-        - 192.168.0.0/16
-  controlPlaneRef:
-    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-    kind: KubeadmControlPlane
-    name: cluster-us-control-plane
-  infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-    kind: AWSCluster
-    name: cluster-us
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-kind: AWSCluster
-metadata:
-  name: cluster-us
-  namespace: default
-spec:
-  region: us-east-2
-  sshKeyName: default
----
-apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-kind: KubeadmControlPlane
-metadata:
-  name: cluster-us-control-plane
-  namespace: default
-spec:
-  kubeadmConfigSpec:
-    clusterConfiguration:
-      apiServer:
-        extraArgs:
-          cloud-provider: external
-      controllerManager:
-        extraArgs:
-          cloud-provider: external
-    initConfiguration:
-      nodeRegistration:
-        kubeletExtraArgs:
-          cloud-provider: external
-        name: '{{ ds.meta_data.local_hostname }}'
-    joinConfiguration:
-      nodeRegistration:
-        kubeletExtraArgs:
-          cloud-provider: external
-        name: '{{ ds.meta_data.local_hostname }}'
-  machineTemplate:
-    infrastructureRef:
-      apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-      kind: AWSMachineTemplate
-      name: cluster-us-control-plane
-  replicas: 1
-  version: v1.27.0
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-kind: AWSMachineTemplate
-metadata:
-  name: cluster-us-control-plane
-  namespace: default
-spec:
-  template:
-    spec:
-      iamInstanceProfile: control-plane.cluster-api-provider-aws.sigs.k8s.io
-      instanceType: t3.medium
-      sshKeyName: default
-      spotMarketOptions:
-        maxPrice: "0.035"
----
-apiVersion: cluster.x-k8s.io/v1beta1
-kind: MachineDeployment
-metadata:
-  name: cluster-us-md-0
-  namespace: default
-spec:
-  clusterName: cluster-us
-  replicas: 1
-  selector:
-    matchLabels: null
-  template:
-    spec:
-      bootstrap:
-        configRef:
-          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-          kind: KubeadmConfigTemplate
-          name: cluster-us-md-0
-      clusterName: cluster-us
-      infrastructureRef:
-        apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-        kind: AWSMachineTemplate
-        name: cluster-us-md-0
-      version: v1.27.0
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-kind: AWSMachineTemplate
-metadata:
-  name: cluster-us-md-0
-  namespace: default
-spec:
-  template:
-    spec:
-      iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
-      instanceType: t3.medium
-      sshKeyName: default
-      spotMarketOptions:
-        maxPrice: "0.035"
----
-apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-kind: KubeadmConfigTemplate
-metadata:
-  name: cluster-us-md-0
-  namespace: default
-spec:
-  template:
-    spec:
-      joinConfiguration:
-        nodeRegistration:
-          kubeletExtraArgs:
-            cloud-provider: external
-          name: '{{ ds.meta_data.local_hostname }}'
----
 apiVersion: addons.cluster.x-k8s.io/v1beta1
 kind: ClusterResourceSet
 metadata:
@@ -982,3 +853,22 @@ metadata:
     type: generated
   name: aws-ebs-csi-driver-addon
   namespace: default
+---
+# helm --kubeconfig=${CLUSTER}.kc install cilium cilium/cilium --version 1.14.5 --namespace kube-system --set ipam.mode=kubernetes
+apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: cilium
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      ccm: external
+  repoURL: https://helm.cilium.io/
+  chartName: cilium
+  releaseName: cilium
+  namespace: kube-system
+  version: 1.14.5
+  valuesTemplate: |
+    ipam:
+      mode: kubernetes

@@ -1,0 +1,161 @@
+apiVersion: addons.cluster.x-k8s.io/v1beta1
+kind: ClusterResourceSet
+metadata:
+  name: test-gslb
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      test-gslb: create
+  resources:
+    - kind: ConfigMap
+      name: test-gslb-addon
+  strategy: ApplyOnce
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  annotations:
+    note: generated
+  labels:
+    type: generated
+  name: test-gslb-addon
+  namespace: default
+data:
+  test-gslb.yaml: |
+    ---
+    apiVersion: k8gb.absa.oss/v1beta1
+    kind: Gslb
+    metadata:
+      name: test-gslb
+      namespace: test-gslb
+    spec:
+      ingress:
+        ingressClassName: nginx
+        rules:
+        - host: roundrobin.demo.k8s.kremser.dev
+          http:
+            paths:
+            - backend:
+                service:
+                  name: podinfo
+                  port:
+                    name: http
+              path: /
+              pathType: Prefix
+      strategy:
+        dnsTtlSeconds: 30
+        splitBrainThresholdSeconds: 300
+        type: roundRobin
+    ---
+    apiVersion: k8gb.absa.oss/v1beta1
+    kind: Gslb
+    metadata:
+      name: test-gslb-failover
+      namespace: test-gslb
+    spec:
+      ingress:
+        ingressClassName: nginx
+        rules:
+        - host: failover.demo.k8s.kremser.dev
+          http:
+            paths:
+            - backend:
+                service:
+                  name: podinfo
+                  port:
+                    name: http
+              path: /
+              pathType: Prefix
+      strategy:
+        dnsTtlSeconds: 30
+        primaryGeoTag: eu-east-2
+        splitBrainThresholdSeconds: 300
+        type: failover
+    ---
+    # ugly, we need to allow the change of dnsPolicy of ExternalDNS deployment in k8gb's helm chart
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: "patch-externaldns"
+      namespace: "k8gb"
+    spec:
+      ttlSecondsAfterFinished: 86400 # 24h
+      template:
+        metadata:
+          name: "patch-externaldns"
+          namespace: "k8gb"
+        spec:
+          restartPolicy: Never
+          serviceAccountName: "patch-externaldns"
+          containers:
+            - name: patch-externaldns
+              # image: "bitnami/kubectl:1.28"
+              image: "quay.io/giantswarm/kubectl:1.28"
+              resources:
+              requests:
+                memory: "64Mi"
+                cpu: "10m"
+              limits:
+                memory: "256Mi"
+                cpu: "100m"
+              command:
+                - "/bin/bash"
+                - "-ce"
+                - |
+                  for i in $(seq 10); do
+                    # remove once https://github.com/k8gb-io/k8gb/pull/1428 got merged and released
+                    kubectl patch deploy -n k8gb external-dns --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}'
+                    sleep 20
+                    
+                    # force AWS load loadbalancer reconciliation by aws cloud provider
+                    kubectl annotate svc -n k8gb k8gb-coredns reconcileMe=foo
+                    kubectl annotate svc -n ingress-nginx ingress-nginx-controller reconcileMe=foo
+                    sleep 5
+
+                    # force k8gb to reconcile (otherwise it could be up to 10 mins, because gslb already existed)
+                    kubectl annotate gslb -n test-gslb test-gslb-failover nginx.ingress.kubernetes.io/ssl-redirect="false"
+                    kubectl annotate gslb -n test-gslb test-gslb nginx.ingress.kubernetes.io/ssl-redirect="false"
+                    kubectl annotate gslb -n test-gslb test-gslb nginx.ingress.kubernetes.io/force-ssl-redirect="false"
+                    kubectl patch gslb -n test-gslb test-gslb-failover --type=merge -p '{"spec":{"strategy":{"dnsTtlSeconds": 20}}}'
+                    kubectl patch gslb -n test-gslb test-gslb --type=merge -p '{"spec":{"strategy":{"dnsTtlSeconds": 20}}}'
+                    exit 0 # ok
+                    _sec=$(echo "1.5^$i" | bc)
+                    echo "Waiting ${_sec} seconds.."
+                    sleep ${_sec}
+                  done
+                  exit 1
+    ---
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: "patch-externaldns"
+      namespace: "k8gb"
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: "patch-externaldns"
+    rules:
+      - apiGroups: ["apps"]
+        resources: ["deployments"]
+        verbs: ["get", "patch"]
+      - apiGroups: [""]
+        resources: ["services"]
+        verbs: ["get", "patch"]
+      - apiGroups: ["k8gb.absa.oss"]
+        resources: ["gslbs"]
+        verbs: ["get", "patch"]
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: "patch-externaldns"
+    subjects:
+      - kind: ServiceAccount
+        name: "patch-externaldns"
+        namespace: "k8gb"
+    roleRef:
+      kind: ClusterRole
+      name: "patch-externaldns"
+      apiGroup: rbac.authorization.k8s.io
