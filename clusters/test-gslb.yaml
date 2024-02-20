@@ -91,7 +91,7 @@ data:
           containers:
             - name: patch-externaldns
               # image: "bitnami/kubectl:1.28"
-              image: "quay.io/giantswarm/kubectl:1.28"
+              image: "quay.io/giantswarm/docker-kubectl:1.29.2"
               resources:
               requests:
                 memory: "64Mi"
