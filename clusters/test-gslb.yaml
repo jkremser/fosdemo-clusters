@@ -100,7 +100,7 @@ data:
                 memory: "256Mi"
                 cpu: "100m"
               command:
-                - "/bin/bash"
+                - "/bin/sh"
                 - "-ce"
                 - |
                   for i in $(seq 10); do
