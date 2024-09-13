@@ -7,7 +7,7 @@ metadata:
     k8gb: enabled
     test-gslb: create
     nginx: create
-    k8gbClusterGeoTag: eu-west-2
+    k8gbClusterGeoTag: eks-eu-west
   name: cluster-eu
   namespace: default
 spec:

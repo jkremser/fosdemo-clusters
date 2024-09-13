@@ -1,3 +1,9 @@
+# on gcp cluster, run:
+# helm repo add k8gb https://www.k8gb.io
+# helm repo update
+# helm upgrade --install k8gb k8gb/k8gb --namespace k8gb --create-namespace  -f gcp/gcp-k8gb-values.yaml
+# or to tweak the values
+# helm upgrade --reuse-values -n k8gb --set k8gb.clusterGeoTag="eks-eu-west" --set k8gb.extGslbClustersGeoTags="eks-eu-west\,gcp-us-east" k8gb k8gb/k8gb
 apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy
 metadata:
@@ -22,7 +28,7 @@ spec:
       - "169.254.169.253" # use this DNS server as a main resolver to enable cross k8gb DNS based communication (DNS server for EC2)
       clusterGeoTag: "{{ .Cluster.metadata.labels.k8gbClusterGeoTag }}"
       # comma-separated list of external gslb geo tags to pair with
-      extGslbClustersGeoTags: "eu-west-2,us-east-2"
+      extGslbClustersGeoTags: "eks-eu-west,gcp-us-east"
 
     route53:
       enabled: true
@@ -39,7 +45,10 @@ spec:
           service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "false"
 ---
 # helm repo add podinfo https://stefanprodan.github.io/podinfo
-# helm upgrade --install podinfo --namespace test-gslb --set ui.message="<geotag>" --set image.repository="ghcr.io/stefanprodan/podinfo" podinfo/podinfo --version 6.5.4
+# helm repo update
+# helm upgrade --install podinfo --namespace test-gslb --create-namespace --set ui.message="<geotag>" --set image.repository="ghcr.io/stefanprodan/podinfo" podinfo/podinfo --version 6.5.4
+# or to change the message:
+# helm upgrade --reuse-values -n test-gslb --set ui.message=eks-eu-west podinfo podinfo/podinfo --version 6.5.4
 apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy
 metadata:

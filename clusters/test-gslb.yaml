@@ -69,7 +69,7 @@ data:
               pathType: Prefix
       strategy:
         dnsTtlSeconds: 30
-        primaryGeoTag: eu-east-2
+        primaryGeoTag: eks-eu-west
         splitBrainThresholdSeconds: 300
         type: failover
     ---
@@ -93,12 +93,12 @@ data:
               # image: "bitnami/kubectl:1.28"
               image: "quay.io/giantswarm/docker-kubectl:1.29.2"
               resources:
-              requests:
-                memory: "64Mi"
-                cpu: "10m"
-              limits:
-                memory: "256Mi"
-                cpu: "100m"
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
               command:
                 - "/bin/sh"
                 - "-ce"
