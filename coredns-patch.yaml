@@ -1,0 +1,24 @@
+spec:
+  template:
+    spec:
+      containers:
+      - name: coredns
+        volumeMounts:
+        - name: geo-data
+          mountPath: /geoip.mmdb
+          subPath: geoip.mmdb
+      dnsPolicy: Default
+      volumes:
+      - name: geo-data
+        emptyDir: {}
+      initContainers:
+      - name: install
+        image: busybox
+        command:
+        - wget
+        - "-O"
+        - "/geo-data/geoip.mmdb"
+        - https://git.io/GeoLite2-Country.mmdb
+        volumeMounts:
+        - name: geo-data
+          mountPath: "/geo-data"

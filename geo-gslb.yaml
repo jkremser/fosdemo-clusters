@@ -1,0 +1,27 @@
+apiVersion: k8gb.absa.oss/v1beta1
+kind: Gslb
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  name: test-gslb-geoip
+  namespace: test-gslb
+spec:
+  ingress:
+    ingressClassName: nginx
+    rules:
+    - host: geoip.demo.k8s.kremser.dev
+      http:
+        paths:
+        - backend:
+            service:
+              name: podinfo
+              port:
+                name: http
+          path: /
+          pathType: Prefix
+  strategy:
+    dnsTtlSeconds: 20
+    splitBrainThresholdSeconds: 300
+    type: geoip
+

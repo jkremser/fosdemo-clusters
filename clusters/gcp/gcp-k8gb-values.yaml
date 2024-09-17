@@ -24,3 +24,33 @@ coredns:
   service:
     annotations:
       networking.gke.io/load-balancer-type: "External"
+  # kubectl create secret -n k8gb generic geodata --from-file=GeoLite2-Country.mmdb
+  extraVolumes:
+   - name: geo-data 
+     emptyDir: {}
+  extraVolumeMounts:
+   - name: geo-data 
+     mountPath: /geoip.mmdb
+     subPath: geoip.mmdb
+
+
+      # volumes:
+      # - name: geo-data
+      #   emptyDir: {}
+      # dnsPolicy: Default
+      # initContainers:
+      # - name: install
+      #   image: busybox
+      #   command:
+      #   - wget
+      #   - "-O"
+      #   - "/geo-data/geoip.mmdb"
+      #   - https://git.io/GeoLite2-Country.mmdb
+      #   volumeMounts:
+      #   - name: geo-data
+      #     mountPath: "/geo-data"
+        # #+ for the main container         
+        # volumeMounts:
+        # - name: geo-data
+        #   mountPath: /geoip.mmdb
+        #   subPath: geoip.mmdb
